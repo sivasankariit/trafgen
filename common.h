@@ -36,6 +36,7 @@ extern "C" {
  */
 #include <gflags/gflags.h>
 #include <iostream>
+#include <vector>
 
 
 //****************************************************************************/

@@ -96,8 +96,7 @@ int set_non_blocking(int fd) {
 }
 
 int set_sendbuff_size(int sockfd, int size) {
-    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &size,
-                   sizeof(size)) < 0) {
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) < 0) {
         perror("setsockopt sendbuff");
         return -1;
     } else {
@@ -106,8 +105,7 @@ int set_sendbuff_size(int sockfd, int size) {
 }
 
 int set_sock_priority(int sockfd, int prio) {
-    if (setsockopt(sockfd, SOL_SOCKET, SO_PRIORITY, &prio,
-                   sizeof(prio)) < 0) {
+    if (setsockopt(sockfd, SOL_SOCKET, SO_PRIORITY, &prio, sizeof(prio)) < 0) {
         perror("setsockopt sk_prio");
         return -1;
     } else {
@@ -121,7 +119,7 @@ int set_sock_priority(int sockfd, int prio) {
  */
 void *client_thread_main(void *arg)
 {
-    int *sockfd;
+    vector <int> sockfd (FLAGS_num_ports, 0);
     struct sockaddr_in *servaddr;
     char *buff;
     unsigned long long nsec = 0;
@@ -133,12 +131,10 @@ void *client_thread_main(void *arg)
         exit(-1);
     }
 
-    /* Allocate sockets. Create a separate socket for each flow.
+    /* Create a separate socket for each flow.
      * In case of UDP, we will just use sockfd[0] to send traffic to all
      * destinations.
      */
-    sockfd = (int *) malloc(FLAGS_num_ports * sizeof(int));
-
     for (int i=0; i < FLAGS_num_ports; i++) {
         if (FLAGS_udp) {
             sockfd[i] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
