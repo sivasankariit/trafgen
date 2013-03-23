@@ -103,10 +103,10 @@ int main(int argc, char *argv[]) {
     signal(SIGKILL, handleint);
 
     /* Call server or client main function */
-    if (FLAGS_c) {
+    if (FLAGS_c)
         client_thread_main(argv[1]);
-    } else {
-    }
+    else
+        server_thread_main(NULL);
 
     return 0;
 }

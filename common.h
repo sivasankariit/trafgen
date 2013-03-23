@@ -24,6 +24,7 @@ extern "C" {
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/resource.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -65,6 +66,8 @@ extern volatile bool interrupted;
 int set_non_blocking(int fd);
 int set_sendbuff_size(int sockfd, int size);
 int set_sock_priority(int sockfd, int prio);
+int set_reuseaddr(int sockfd);
 void *client_thread_main(void *arg);
+void *server_thread_main(void *arg);
 
 #endif

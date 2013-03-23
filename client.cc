@@ -113,12 +113,22 @@ int set_sock_priority(int sockfd, int prio) {
     }
 }
 
+int set_reuseaddr(int sockfd) {
+    int optval = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)) < 0) {
+        perror("setsockopt reuseaddr");
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
 
 /* This function's interface allows it to be called directly or to start a
  * client thread through pthreads.
  */
-void *client_thread_main(void *arg)
-{
+void *client_thread_main(void *arg) {
+
     vector <int> sockfd (FLAGS_num_ports, 0);
     struct sockaddr_in *servaddr;
     char *buff;
