@@ -14,6 +14,7 @@ using namespace std;
 extern "C" {
 #include <arpa/inet.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -60,6 +61,9 @@ extern volatile bool interrupted;
 // Global (External) Function Declarations
 //****************************************************************************/
 
+int set_non_blocking(int fd);
+int set_sendbuff_size(int sockfd, int size);
+int set_sock_priority(int sockfd, int prio);
 void *client_thread_main(void *arg);
 
 #endif

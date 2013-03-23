@@ -80,6 +80,41 @@ static unsigned long long spin_sleep_nsec(unsigned long long nsec,
     return timespec_diff_nsec(&start, &curr);
 }
 
+int set_non_blocking(int fd) {
+    int flags;
+    /* If they have O_NONBLOCK, use the Posix way to do it */
+#if defined(O_NONBLOCK)
+    /* Fixme: O_NONBLOCK is defined but broken on SunOS 4.1.x and AIX 3.2.5. */
+    if (-1 == (flags = fcntl(fd, F_GETFL, 0)))
+        flags = 0;
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+#else
+    /* Otherwise, use the old way of doing it */
+    flags = 1;
+    return ioctl(fd, FIOBIO, &flags);
+#endif
+}
+
+int set_sendbuff_size(int sockfd, int size) {
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &size,
+                   sizeof(size)) < 0) {
+        perror("setsockopt sendbuff");
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+int set_sock_priority(int sockfd, int prio) {
+    if (setsockopt(sockfd, SOL_SOCKET, SO_PRIORITY, &prio,
+                   sizeof(prio)) < 0) {
+        perror("setsockopt sk_prio");
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
 
 /* This function's interface allows it to be called directly or to start a
  * client thread through pthreads.
@@ -88,8 +123,6 @@ void *client_thread_main(void *arg)
 {
     int *sockfd;
     struct sockaddr_in *servaddr;
-    int sendbuff = FLAGS_send_buff;
-    int prio = FLAGS_sk_prio;
     char *buff;
     unsigned long long nsec = 0;
     char *server = (char*) arg;
@@ -118,18 +151,12 @@ void *client_thread_main(void *arg)
         }
 
         /* Set send buffer size */
-        if (setsockopt(sockfd[0], SOL_SOCKET, SO_SNDBUF, &sendbuff,
-                       sizeof(sendbuff)) < 0) {
-            perror("setsockopt sendbuff");
+        if (set_sendbuff_size(sockfd[i], FLAGS_send_buff) < 0)
             return NULL;
-        }
 
         /* Set socket priority */
-        if (setsockopt(sockfd[i], SOL_SOCKET, SO_PRIORITY, &prio,
-                       sizeof(prio)) < 0) {
-            perror("setsockopt sk_prio");
+        if (set_sock_priority(sockfd[i], FLAGS_sk_prio) < 0)
             return NULL;
-        }
     }
 
     /* Allocate server address objects */
@@ -164,11 +191,11 @@ void *client_thread_main(void *arg)
         nsec = udp_bytes_on_wire(FLAGS_send_size) * 8000LLU / FLAGS_rate_mbps;
 
         printf("Sleeping for %lluns, sendbuff %d, send_size %d, prio %d\n",
-               nsec, sendbuff, FLAGS_send_size, prio);
+               nsec, FLAGS_send_buff, FLAGS_send_size, FLAGS_sk_prio);
     } else {
         printf("App rate limiting disabled, sendbuff %d, "
                "send_size %d, prio %d\n",
-               sendbuff, FLAGS_send_size, prio);
+               FLAGS_send_buff, FLAGS_send_size, FLAGS_sk_prio);
     }
     struct timespec prev_nsec;
     prev_nsec.tv_sec = 0;
@@ -202,5 +229,5 @@ void *client_thread_main(void *arg)
         }
     }
 
-	return NULL;
+    return NULL;
 }
