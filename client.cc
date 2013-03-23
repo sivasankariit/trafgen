@@ -133,11 +133,13 @@ void *client_thread_main(void *arg) {
     }
 
     /* For TCP mode, connect sockets to respective dst ports */
-    for (int i=0; i < FLAGS_num_ports; i++) {
-        if (connect(sockfd[i], (const struct sockaddr *)&servaddr[i],
-                    sizeof servaddr[i])) {
-            perror("connect");
-            return NULL;
+    if (FLAGS_tcp) {
+        for (int i=0; i < FLAGS_num_ports; i++) {
+            if (connect(sockfd[i], (const struct sockaddr *)&servaddr[i],
+                        sizeof servaddr[i])) {
+                perror("connect");
+                return NULL;
+            }
         }
     }
 
