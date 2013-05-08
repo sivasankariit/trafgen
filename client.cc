@@ -120,6 +120,12 @@ void *client_thread_main(void *arg) {
         /* Set socket priority */
         if (set_sock_priority(sockfd[i], FLAGS_sk_prio) < 0)
             return NULL;
+
+        /* Set socket to be non-blocking in case of TCP */
+        if (FLAGS_tcp) {
+            if (set_non_blocking(sockfd[i]) < 0)
+                return NULL;
+        }
     }
 
     /* Allocate server address objects */
@@ -137,8 +143,10 @@ void *client_thread_main(void *arg) {
         for (int i=0; i < FLAGS_num_ports; i++) {
             if (connect(sockfd[i], (const struct sockaddr *)&servaddr[i],
                         sizeof servaddr[i])) {
-                perror("connect");
-                return NULL;
+                if (errno != EINPROGRESS) {
+                    perror("connect");
+                    return NULL;
+                }
             }
         }
     }
@@ -179,14 +187,14 @@ void *client_thread_main(void *arg) {
                          (struct sockaddr *)&servaddr[i],
                          sizeof(servaddr[i]));
                 /* For UDP continue sending even if there is no receiver and
-                 * sendto() fails
+                 * sendto() fails.
                  */
 
                 if (nsec > 0)
                     spin_sleep_nsec(nsec, &prev_nsec);
             } else {
                 ret = send(sockfd[i], buff, FLAGS_send_size, 0);
-                if (ret < 0) {
+                if (ret < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
                     perror("send");
                     return NULL;
                 }
