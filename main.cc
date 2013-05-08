@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Set file resource limits */
-    set_num_file_limit(FLAGS_num_ports);
+    set_num_file_limit(2*FLAGS_num_ports);
 
     /* Register signal handler */
 	interrupted = 0;
