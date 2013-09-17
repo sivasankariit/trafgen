@@ -28,6 +28,7 @@ DEFINE_int32(num_ports, 1,
 
 volatile bool interrupted;
 unsigned long long total_bytes_in = 0;
+unsigned long long total_bytes_out = 0;
 
 
 //****************************************************************************/
@@ -77,6 +78,14 @@ void add_to_total_bytes_in(int len) {
 
 unsigned long long get_total_bytes_in() {
     return total_bytes_in;
+}
+
+void add_to_total_bytes_out(int len) {
+    total_bytes_out += len;
+}
+
+unsigned long long get_total_bytes_out() {
+    return total_bytes_out;
 }
 
 int main(int argc, char *argv[]) {

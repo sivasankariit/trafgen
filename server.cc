@@ -92,7 +92,7 @@ void *server_thread_main(void *arg) {
 
     /* Store the start time for logging statistics */
     prev_stats_time = get_current_time();
-    cout << "delta_t\trate_mbps" << endl;
+    cout << "delta_t\trate_mbps_in" << endl;
 
     /* Accept incoming connections and receive traffic */
     while (!interrupted) {

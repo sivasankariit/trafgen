@@ -91,6 +91,8 @@ void *client_thread_main(void *arg) {
     char *buff;
     unsigned long long nsec = 0;
     char *server = (char*) arg;
+    double prev_stats_time = 0;
+    unsigned long long prev_total_bytes_out = 0;
 
     /* Validate flags */
     if (FLAGS_tcp && FLAGS_rate_mbps) {
@@ -177,8 +179,13 @@ void *client_thread_main(void *arg) {
     printf("Starting %d ports of %s traffic to %s\n",
            FLAGS_num_ports, FLAGS_tcp ? "TCP" : "UDP", server);
 
+    /* Store the start time for logging statistics */
+    prev_stats_time = get_current_time();
+    cout << "delta_t\trate_mbps_out" << endl;
+
     /* Send traffic to all dst ports */
     while (!interrupted) {
+        double current_time, diff_time;
         for (int i=0; i < FLAGS_num_ports; i++) {
             int ret;
             /* For UDP, always send on same sockfd to all dst ports */
@@ -189,6 +196,8 @@ void *client_thread_main(void *arg) {
                 /* For UDP continue sending even if there is no receiver and
                  * sendto() fails.
                  */
+                if (ret > 0)
+                    add_to_total_bytes_out(ret);
 
                 if (nsec > 0)
                     spin_sleep_nsec(nsec, &prev_nsec);
@@ -199,6 +208,19 @@ void *client_thread_main(void *arg) {
                     return NULL;
                 }
             }
+        }
+        /* Check if stats must be shown */
+        current_time = get_current_time();
+        diff_time = current_time - prev_stats_time;
+        if (diff_time >= 1.0) {
+            unsigned long long curr_bytes_out = get_total_bytes_out();
+            double rate = ((curr_bytes_out - prev_total_bytes_out) * 8 / (1000000 * diff_time));
+
+            cout << std::setiosflags(ios::fixed) << std::setprecision(3) << diff_time;
+            cout << "\t" << std::setiosflags(ios::fixed) << std::setprecision(2) << rate << endl;
+
+            prev_stats_time = current_time;
+            prev_total_bytes_out = curr_bytes_out;
         }
     }
 

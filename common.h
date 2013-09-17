@@ -72,6 +72,8 @@ void *client_thread_main(void *arg);
 void *server_thread_main(void *arg);
 void add_to_total_bytes_in(int len);
 unsigned long long get_total_bytes_in();
+void add_to_total_bytes_out(int len);
+unsigned long long get_total_bytes_out();
 double get_current_time();
 
 #endif
