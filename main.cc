@@ -27,6 +27,7 @@ DEFINE_int32(num_ports, 1,
 //****************************************************************************/
 
 volatile bool interrupted;
+atomic<unsigned long long> total_bytes_in(0);
 
 
 //****************************************************************************/
@@ -41,8 +42,7 @@ void set_num_file_limit(int n);
 // Function Definitions
 //****************************************************************************/
 
-void handleint(int signum)
-{
+void handleint(int signum) {
     interrupted = 1;
 }
 
@@ -63,6 +63,20 @@ void set_num_file_limit(int n) {
         perror("getrlimit");
         exit(-1);
     }
+}
+
+double get_current_time() {
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    return (now.tv_sec + now.tv_usec/1000000.0);
+}
+
+void add_to_total_bytes_in(int len) {
+    std::atomic_fetch_add(&total_bytes_in, (unsigned long long) len);
+}
+
+unsigned long long get_total_bytes_in() {
+    return std::atomic_load(&total_bytes_in);
 }
 
 int main(int argc, char *argv[]) {

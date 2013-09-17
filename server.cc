@@ -29,6 +29,8 @@ void *server_thread_main(void *arg) {
     fd_set server_readfds;
     int server_fdmax = 0;
     char *buff = (char *) malloc(FLAGS_recv_size);
+    double prev_stats_time = 0;
+    unsigned long long prev_total_bytes_in = 0;
 
     /* Create separate listen sockets for each port */
     FD_ZERO(&server_readfds);
@@ -88,11 +90,15 @@ void *server_thread_main(void *arg) {
         }
     }
 
+    /* Store the start time for logging statistics */
+    prev_stats_time = get_current_time();
+
     /* Accept incoming connections and receive traffic */
     while (!interrupted) {
         int ret;
         struct timeval timeout;
         fd_set server_readfds_tmp = server_readfds;
+        double current_time, diff_time;
 
         timeout.tv_sec = 0;
         timeout.tv_usec = 100000; // check for interrupt at least every 100ms
@@ -173,7 +179,23 @@ void *server_thread_main(void *arg) {
                 } else {
                     continue;
                 }
+            } else {
+                add_to_total_bytes_in(ret);
             }
+        }
+
+        /* Check if stats must be shown */
+        current_time = get_current_time();
+        diff_time = current_time - prev_stats_time;
+        if (diff_time >= 1.0) {
+            unsigned long long curr_bytes_in = get_total_bytes_in();
+            double rate = ((curr_bytes_in - prev_total_bytes_in) * 8 / (1000000 * diff_time));
+
+            cout << std::setiosflags(ios::fixed) << std::setprecision(3) << diff_time;
+            cout << "\t" << std::setiosflags(ios::fixed) << std::setprecision(2) << rate << endl;
+
+            prev_stats_time = current_time;
+            prev_total_bytes_in = curr_bytes_in;
         }
     }
 
