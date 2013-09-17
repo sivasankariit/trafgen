@@ -61,6 +61,8 @@ void *server_thread_main(void *arg) {
 
     /* Bind to server ports
      * For TCP mode, start listening to incoming connections
+     * For UDP mode, add all the server sockets to the clisockfd set to later
+     * read data from them.
      */
     servaddr = (struct sockaddr_in *) malloc(FLAGS_num_ports *
                                              sizeof(struct sockaddr_in));
@@ -81,6 +83,8 @@ void *server_thread_main(void *arg) {
                 perror("listen");
                 return NULL;
             }
+        } else {
+            clisockfd.push_back(srvsockfd[i]);
         }
     }
 
@@ -107,8 +111,8 @@ void *server_thread_main(void *arg) {
             continue;
         }
 
-        /* Accept incoming connections on all listen ports */
-        for (int i=0; i < FLAGS_num_ports; i++) {
+        /* For TCP, accept incoming connections on all listen ports */
+        for (int i=0; (FLAGS_tcp) && (i < FLAGS_num_ports); i++) {
             /* Check if listen port has any backlogged connections */
             if (!FD_ISSET(srvsockfd[i], &server_readfds_tmp))
                 continue;
