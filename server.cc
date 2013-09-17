@@ -192,7 +192,8 @@ void *server_thread_main(void *arg) {
             unsigned long long curr_bytes_in = get_total_bytes_in();
             double rate = ((curr_bytes_in - prev_total_bytes_in) * 8 / (1000000 * diff_time));
 
-            cout << std::setiosflags(ios::fixed) << std::setprecision(3) << diff_time;
+            cout << "Rx";
+            cout << "\t" << std::setiosflags(ios::fixed) << std::setprecision(3) << diff_time;
             cout << "\t" << std::setiosflags(ios::fixed) << std::setprecision(2) << rate << endl;
 
             prev_stats_time = current_time;
