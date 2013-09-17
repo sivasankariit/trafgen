@@ -36,7 +36,6 @@ extern "C" {
  * C++ Libraries
  */
 #include <gflags/gflags.h>
-#include <atomic>
 #include <iomanip>
 #include <iostream>
 #include <vector>

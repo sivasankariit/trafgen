@@ -27,7 +27,7 @@ DEFINE_int32(num_ports, 1,
 //****************************************************************************/
 
 volatile bool interrupted;
-atomic<unsigned long long> total_bytes_in(0);
+unsigned long long total_bytes_in = 0;
 
 
 //****************************************************************************/
@@ -72,11 +72,11 @@ double get_current_time() {
 }
 
 void add_to_total_bytes_in(int len) {
-    std::atomic_fetch_add(&total_bytes_in, (unsigned long long) len);
+    total_bytes_in += len;
 }
 
 unsigned long long get_total_bytes_in() {
-    return std::atomic_load(&total_bytes_in);
+    return total_bytes_in;
 }
 
 int main(int argc, char *argv[]) {
